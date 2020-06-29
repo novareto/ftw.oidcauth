@@ -232,7 +232,7 @@ class OIDCPlugin(BasePlugin):
 
         # only update props if json is valid
         props = REQUEST.form.get('properties-mapping')
-        props_data = self.get_valid_json(props)
+        props_data = ast.literal_eval()
         if not props_data:
             response.redirect('%s/manage_config?manage_tabs_message=%s' % (
                 self.absolute_url(), 'Please make sure the json is valid!'))
@@ -242,10 +242,12 @@ class OIDCPlugin(BasePlugin):
         response.redirect('%s/manage_config?manage_tabs_message=%s' %
                           (self.absolute_url(), 'Configuration+updated.'))
 
+    # Anti pattern
     def client_id(self):
         """Accessor for config form"""
         return self._client_id
 
+    # Achtung docstring! Evtl. /acl_users/oidc/client_secret
     def client_secret(self):
         """Accessor for config form"""
         return self._client_secret
@@ -274,7 +276,7 @@ class OIDCPlugin(BasePlugin):
         """Accessor for config form"""
         return self._jwks_endpoint
 
-    def enable_auto_provisioning(self):
+    def auto_provisioning_enabled(self):
         """Accessor for config form"""
         return True if self._enable_auto_provisioning else False
 

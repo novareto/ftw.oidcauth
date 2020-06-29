@@ -28,12 +28,13 @@ class OIDCClientAuthentication(object):
     def __init__(self, request, code, state):
         self.has_been_authorized = False
 
-        self._code = code
-        self._state = state
-        self._request = request
-        self._oidc_plugin = self._get_oidc_plugin()
+        self.code = code
+        self.state = state
+        self.request = request
+        self.oidc_plugin = self._get_oidc_plugin()
 
     def authorize(self):
+        user_info = self._authorize_user()
         props = self._map_properties()
         oidc_user_handler = OIDCUserHandler(self._request, props)
         oidc_user_handler.login_user()
@@ -45,7 +46,7 @@ class OIDCClientAuthentication(object):
         self._request.response.redirect('%s' % next_path)
 
     def _map_properties(self):
-        user_info = self._authorize_user()
+        
         props_mapping = self._oidc_plugin._properties_mapping
         props = {key: user_info.get(value)
                  for (key, value) in props_mapping.items()}
@@ -186,11 +187,11 @@ class OIDCClientAuthentication(object):
 class OIDCUserHandler(object):
     def __init__(self, request, props):
         self.is_user_logged_in = False
-        self._properties = props
-        self._userid = self._properties.get('userid')
-        self._request = request
-        self._first_login = False
-        self._mtool = api.portal.get_tool('portal_membership')
+        self.properties = props
+        self.userid = self._properties.get('userid')
+        self.request = request
+        self.first_login = False
+        self.mtool = api.portal.get_tool('portal_membership')
 
     def login_user(self):
         member = self._get_member()
@@ -260,7 +261,7 @@ class OIDCUserHandler(object):
         plugins = portal.acl_users.plugins
         authenticators = plugins.listPlugins(IChallengePlugin)
         oidc_plugin = None
-        for id_, authenticator in authenticators:
+        for _id, authenticator in authenticators:
             if authenticator.meta_type == "ftw.oidcauth plugin":
                 oidc_plugin = authenticator
 

@@ -6,7 +6,7 @@ version = '1.0'
 tests_require = [
     'mock',
     'plone.app.testing',
-    'plone.restapi',
+    # 'plone.restapi', ???
 ]
 
 setup(name='ftw.oidcauth',
@@ -39,6 +39,7 @@ setup(name='ftw.oidcauth',
           'plone.api',
           'requests',
           'setuptools',
+          'six',
       ],
       tests_require=tests_require,
       extras_require={

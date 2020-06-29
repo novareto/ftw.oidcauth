@@ -18,7 +18,7 @@ class TestOIDCClientAuthentication(unittest.TestCase):
         self.request = self.layer['request']
 
     @patch('requests.post')
-    def test_authorize_client_post_request(self, post_mock):
+    def test_authorize_client_makes_post_request(self, post_mock):
         post_mock.return_value = self._mock_response(200)
         code = '9999'
         state = ''
@@ -34,7 +34,7 @@ class TestOIDCClientAuthentication(unittest.TestCase):
                 'redirect_uri': 'http://nohost/plone/oidc/callback'})
 
     @patch('requests.post')
-    def test_authorize_client_post_request_error(self, post_mock):
+    def test_authorize_client_raises_if_bad_response(self, post_mock):
         post_mock.return_value = self._mock_response(400)
         code = '9999'
         state = ''
@@ -44,7 +44,7 @@ class TestOIDCClientAuthentication(unittest.TestCase):
             oidc_auth._authorize_client()
 
     @patch('requests.get')
-    def test_obtain_validated_token_get_request_error(self, get_mock):
+    def test_obtain_validated_token_raises_if_bad_response_from_jwks(self, get_mock):
         get_mock.return_value = self._mock_response(400)
         code = '9999'
         state = ''
@@ -61,7 +61,7 @@ class TestOIDCClientAuthentication(unittest.TestCase):
             oidc_auth._obtain_validated_token(token_data)
 
     @patch('requests.get')
-    def test_get_user_info_get_request(self, get_mock):
+    def test_get_user_info_calls_userinfo_endpoint(self, get_mock):
         get_mock.return_value = self._mock_response(200)
         code = '9999'
         state = ''
@@ -76,7 +76,7 @@ class TestOIDCClientAuthentication(unittest.TestCase):
                 'Authorization': 'Bearer 8800c60bd6f44a78a9c9a963b615170c'})
 
     @patch('requests.get')
-    def test_get_user_info_get_request_error(self, get_mock):
+    def test_get_user_info_raises_if_invalid_data_from_userinfo_endpoint(self, get_mock):
         get_mock.return_value = self._mock_response(400)
         code = '9999'
         state = ''

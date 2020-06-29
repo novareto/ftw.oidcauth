@@ -31,11 +31,11 @@ class OIDCView(BrowserView):
 
     def __call__(self):
         if self._method == 'callback':
-            self._callback()
+            self.callback()
         else:
             raise zNotFound()
 
-    def _callback(self):
+    def callback(self):
         code = self.request.form.get('code')
         state = self.request.form.get('state')
         client_auth = OIDCClientAuthentication(
@@ -47,6 +47,8 @@ class OIDCView(BrowserView):
             return
 
         if client_auth.has_been_authorized:
+            # Evtl. hier redirect machen
+            # self.request.response.redirect(client_auth.get_redirect())
             client_auth.set_redirect()
             return
         else:

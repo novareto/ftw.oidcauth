@@ -15,3 +15,4 @@ class TestErrorsInheritFromBase(TestCase):
         self.assertIsInstance(OIDCSubMismatchError(), OIDCBaseError)
         self.assertIsInstance(OIDCTokenError(), OIDCBaseError)
         self.assertIsInstance(OIDCUserInfoError(), OIDCBaseError)
+!*!*!

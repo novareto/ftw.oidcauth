@@ -3,6 +3,9 @@ import sys
 import urllib
 
 
+# Six verwenden
+# from six.moves.urllib import quote
+
 if sys.version_info.major == 2:
     import urlparse
     urljoin = urlparse.urljoin
@@ -15,13 +18,13 @@ else:
     url_quote = urllib.parse.quote
 
 
-def get_oidc_request_uri(do_url_quote=False):
+def get_oidc_request_url(quote=False):
     portal = api.portal.get()
     base_path = portal.absolute_url()
     if not base_path.endswith('/'):
         base_path = base_path + '/'
     url = urljoin(base_path, 'oidc/callback')
-    if do_url_quote:
+    if quote:
         return url_quote(url)
     else:
         return url
