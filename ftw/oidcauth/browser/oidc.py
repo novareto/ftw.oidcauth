@@ -17,12 +17,12 @@ class OIDCView(BrowserView):
 
     def __init__(self, context, request):
         super(OIDCView, self).__init__(context, request)
-        self._method = None
+        self.method = None
 
     def publishTraverse(self, request, name):
-        if self._method is None:
+        if self.method is None:
             if name == 'callback':
-                self._method = name
+                self.method = name
             else:
                 raise NotFound(self, name, request)
         else:
@@ -30,12 +30,12 @@ class OIDCView(BrowserView):
         return self
 
     def __call__(self):
-        if self._method == 'callback':
-            self._callback()
+        if self.method == 'callback':
+            self.callback()
         else:
             raise zNotFound()
 
-    def _callback(self):
+    def callback(self):
         code = self.request.form.get('code')
         state = self.request.form.get('state')
         client_auth = OIDCClientAuthentication(
@@ -43,17 +43,17 @@ class OIDCView(BrowserView):
         try:
             client_auth.authorize()
         except OIDCBaseError as ex:
-            self._set_error_response(ex.status_code, ex.message)
+            self.set_error_response(ex.status_code, ex.message)
             return
 
         if client_auth.has_been_authorized:
             client_auth.set_redirect()
             return
         else:
-            self._set_error_response(400, 'Invalid Request')
+            self.set_error_response(400, 'Invalid Request')
             return
 
-    def _set_error_response(self, status, message):
+    def set_error_response(self, status, message):
         response = self.request.response
         response.setHeader('Content-Type', 'text/plain')
         response.setStatus(status, lock=1)
