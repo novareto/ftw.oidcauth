@@ -47,7 +47,7 @@ class OIDCView(BrowserView):
             return
 
         if client_auth.has_been_authorized:
-            client_auth.set_redirect()
+            self.request.response.redirect(client_auth.get_redirect())
             return
         else:
             self.set_error_response(400, 'Invalid Request')

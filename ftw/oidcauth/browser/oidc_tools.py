@@ -40,9 +40,8 @@ class OIDCClientAuthentication(object):
         if oidc_user_handler.is_user_logged_in:
             self.has_been_authorized = True
 
-    def set_redirect(self):
-        next_path = self._request.cookies.get('oidc_next')
-        self._request.response.redirect('%s' % next_path)
+    def get_redirect(self):
+        return self._request.cookies.get('oidc_next')
 
     def _map_properties(self):
         user_info = self._authorize_user()
