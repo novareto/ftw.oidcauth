@@ -28,24 +28,24 @@ class OIDCClientAuthentication(object):
     def __init__(self, request, code, state):
         self.has_been_authorized = False
 
-        self._code = code
-        self._state = state
-        self._request = request
-        self._oidc_plugin = self._get_oidc_plugin()
+        self.code = code
+        self.state = state
+        self.request = request
+        self.oidc_plugin = self.get_oidc_plugin()
 
     def authorize(self):
-        props = self._map_properties()
-        oidc_user_handler = OIDCUserHandler(self._request, props)
+        props = self.map_properties()
+        oidc_user_handler = OIDCUserHandler(self.request, props)
         oidc_user_handler.login_user()
         if oidc_user_handler.is_user_logged_in:
             self.has_been_authorized = True
 
     def get_redirect(self):
-        return self._request.cookies.get('oidc_next')
+        return self.request.cookies.get('oidc_next')
 
-    def _map_properties(self):
-        user_info = self._authorize_user()
-        props_mapping = self._oidc_plugin._properties_mapping
+    def map_properties(self):
+        user_info = self.authorize_user()
+        props_mapping = self.oidc_plugin.properties_mapping
         props = {key: user_info.get(value)
                  for (key, value) in props_mapping.items()}
         if not props.get('userid') or not user_info.get(props_mapping.get('userid')):
@@ -53,7 +53,7 @@ class OIDCClientAuthentication(object):
             raise OIDCUserIDPropertyError
         return props
 
-    def _authorize_user(self):
+    def authorize_user(self):
         """OIDC main authorization code flow:
 
         1: Get authorization token to authorize on the client side using the
@@ -63,14 +63,14 @@ class OIDCClientAuthentication(object):
         3: Get the user info.
         4: Validate the sub from the validated token/user_info are a match.
         """
-        client_auth_token = self._authorize_client()
-        token = self._obtain_validated_token(client_auth_token)
-        user_info = self._get_user_info(client_auth_token.get('access_token'))
-        self._validate_sub_matching(token, user_info)
+        client_auth_token = self.authorize_client()
+        token = self.obtain_validated_token(client_auth_token)
+        user_info = self.get_user_info(client_auth_token.get('access_token'))
+        self.validate_sub_matching(token, user_info)
 
         return user_info
 
-    def _authorize_client(self):
+    def authorize_client(self):
         """Client side validation of user request code.
 
         The return value is expected to contain a dictionary with:
@@ -82,51 +82,51 @@ class OIDCClientAuthentication(object):
         """
         authstr = 'Basic ' + b64encode(
             ('{}:{}'.format(
-                self._oidc_plugin._client_id,
-                self._oidc_plugin._client_secret)).encode('utf-8')).decode('utf-8')
+                self.oidc_plugin.client_id,
+                self.oidc_plugin.client_secret)).encode('utf-8')).decode('utf-8')
         headers = {'Authorization': authstr}
         data = {
             'grant_type': 'authorization_code',
-            'code': self._code,
+            'code': self.code,
             'redirect_uri': get_oidc_request_uri(),
         }
 
         response = requests.post(
-            self._oidc_plugin._token_endpoint,
+            self.oidc_plugin.token_endpoint,
             data=data,
             headers=headers)
 
         if response.status_code != 200:
             logger.warning(
-                'An error occurred trying to authorize %s', self._code)
+                'An error occurred trying to authorize %s', self.code)
             raise OIDCTokenError
         else:
             return response.json()
 
-    def _obtain_validated_token(self, token_data):
+    def obtain_validated_token(self, token_data):
         """Obtain validated jwk.
         """
-        response = requests.get(self._oidc_plugin._jwks_endpoint)
+        response = requests.get(self.oidc_plugin.jwks_endpoint)
         if response.status_code != 200:
             logger.info('An error occurred obtaining jwks')
             raise OIDCJwkEndpointError
         jwks = response.json().get('keys')
         id_token = token_data['id_token']
-        public_key = self._extract_token_key(jwks, id_token)
+        public_key = self.extract_token_key(jwks, id_token)
 
         try:
             return jwt.decode(
                 id_token, key=public_key, algorithms=['RS256'],
-                audience=self._oidc_plugin._client_id)
+                audience=self.oidc_plugin.client_id)
         except InvalidTokenError:
             logger.warning('An error occurred trying to decode %s', id_token)
             raise OIDCTokenError
 
-    def _get_user_info(self, access_token):
+    def get_user_info(self, access_token):
         bearerstr = 'Bearer {}'.format(access_token)
         headers = {'Authorization': bearerstr}
         response = requests.get(
-            self._oidc_plugin._user_endpoint, headers=headers)
+            self.oidc_plugin.user_endpoint, headers=headers)
         if response.status_code != 200:
             logger.warning(
                 'An error occurred getting user info for %s.', access_token)
@@ -134,7 +134,7 @@ class OIDCClientAuthentication(object):
         return response.json()
 
     @staticmethod
-    def _get_oidc_plugin():
+    def get_oidc_plugin():
         """Get the OIDC plugin.
 
         This method assumes there is only one OIDC plugin.
@@ -143,14 +143,14 @@ class OIDCClientAuthentication(object):
         plugins = portal.acl_users.plugins
         authenticators = plugins.listPlugins(IChallengePlugin)
         oidc_plugin = None
-        for id_, authenticator in authenticators:
+        for _id, authenticator in authenticators:
             if authenticator.meta_type == "ftw.oidcauth plugin":
                 oidc_plugin = authenticator
 
         return oidc_plugin
 
     @staticmethod
-    def _validate_sub_matching(token, user_info):
+    def validate_sub_matching(token, user_info):
         """Validates that sub in the validated token is equal to sub provided
            by the user information.
         """
@@ -165,7 +165,7 @@ class OIDCClientAuthentication(object):
             raise OIDCSubMismatchError
 
     @staticmethod
-    def _extract_token_key(jwks, id_token):
+    def extract_token_key(jwks, id_token):
         """Extract the matching jwk for an id_token.
 
         We should always assume that a JWKS will contain multiple keys.
@@ -185,72 +185,72 @@ class OIDCClientAuthentication(object):
 class OIDCUserHandler(object):
     def __init__(self, request, props):
         self.is_user_logged_in = False
-        self._properties = props
-        self._userid = self._properties.get('userid')
-        self._request = request
-        self._first_login = False
-        self._mtool = api.portal.get_tool('portal_membership')
+        self.properties = props
+        self.userid = self.properties.get('userid')
+        self.request = request
+        self.first_login = False
+        self.mtool = api.portal.get_tool('portal_membership')
 
     def login_user(self):
-        member = self._get_member()
-        self._setup_session()
-        self._update_login_times_and_other_member_properties(member)
-        self._fire_login_event(member)
-        self._expire_the_clipboard()
-        self._create_member_area()
+        member = self.get_member()
+        self.setup_session()
+        self.update_login_times_and_other_member_properties(member)
+        self.fire_login_event(member)
+        self.expire_the_clipboard()
+        self.create_member_area()
         self.is_user_logged_in = True
 
-    def _get_member(self):
-        member = self._mtool.getMemberById(self._userid)
+    def get_member(self):
+        member = self.mtool.getMemberById(self.userid)
         if member is None:
-            plugin = self._get_oidc_plugin()
+            plugin = self.get_oidc_plugin()
             if plugin is None:
                 logger.warning(
                     'Missing OIDC PAS plugin. Cannot autoprovision user %s.' %
-                    self._userid)
+                    self.userid)
                 raise OIDCPluginNotFoundError
-            if not plugin.enable_auto_provisioning():
+            if not plugin.auto_provisioning_enabled():
                 logger.info(
                     'Auto provisioning\'s disabled. User %s wasn\'t created' %
-                    self._userid)
+                    self.userid)
                 raise OIDCUserAutoProvisionError
-            plugin.addUser(self._userid)
-            member = self._mtool.getMemberById(self._userid)
+            plugin.addUser(self.userid)
+            member = self.mtool.getMemberById(self.userid)
         return member
 
-    def _update_login_times_and_other_member_properties(self, member):
+    def update_login_times_and_other_member_properties(self, member):
         default = DateTime('2000/01/01')
         login_time = member.getProperty('login_time', default)
         if login_time == default:
-            self._first_login = True
+            self.first_login = True
             login_time = DateTime()
         member.setMemberProperties(dict(
-            login_time=self._mtool.ZopeTime(),
+            login_time=self.mtool.ZopeTime(),
             last_login_time=login_time,
-            **self._properties
+            **self.properties
         ))
 
-    def _setup_session(self):
+    def setup_session(self):
         uf = api.portal.get_tool('acl_users')
         uf.updateCredentials(
-            self._request, self._request.response, self._userid, '')
+            self.request, self.request.response, self.userid, '')
 
-    def _fire_login_event(self, member):
+    def fire_login_event(self, member):
         user = member.getUser()
-        if self._first_login:
+        if self.first_login:
             event.notify(UserInitialLoginInEvent(user))
         else:
             event.notify(UserLoggedInEvent(user))
 
-    def _expire_the_clipboard(self):
-        if self._request.get('__cp', None) is not None:
-            self._request.response.expireCookie('__cp', path='/')
+    def expire_the_clipboard(self):
+        if self.request.get('__cp', None) is not None:
+            self.request.response.expireCookie('__cp', path='/')
 
-    def _create_member_area(self):
-        self._mtool.createMemberArea(member_id=self._userid)
+    def create_member_area(self):
+        self.mtool.createMemberArea(member_id=self.userid)
 
     @staticmethod
-    def _get_oidc_plugin():
+    def get_oidc_plugin():
         """Get the OIDC plugin.
 
         This method assumes there is only one OIDC plugin.

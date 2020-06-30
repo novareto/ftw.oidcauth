@@ -29,16 +29,16 @@ class FtwOIDCauthLayer(PloneSandboxLayer):
         uf = portal.acl_users
         plugin = OIDCPlugin('oidc')
         plugin_props = [
-            ('_client_id', u'42'),
-            ('_client_secret', u'42'),
-            ('_scope', u'openid email profile'),
-            ('_sign_algorithm', u'RS256'),
-            ('_authentication_endpoint', u'https://auth.ch/openid/authorize'),
-            ('_token_endpoint', u'https://auth.ch/openid/token'),
-            ('_user_endpoint', u'https://auth.ch/openid/userinfo'),
-            ('_jwks_endpoint', u'https://auth.ch/openid/jwks'),
-            ('_enable_auto_provisioning', u'true'),
-            ('_properties_mapping',
+            ('client_id', u'42'),
+            ('client_secret', u'42'),
+            ('scope', u'openid email profile'),
+            ('sign_algorithm', u'RS256'),
+            ('authentication_endpoint', u'https://auth.ch/openid/authorize'),
+            ('token_endpoint', u'https://auth.ch/openid/token'),
+            ('user_endpoint', u'https://auth.ch/openid/userinfo'),
+            ('jwks_endpoint', u'https://auth.ch/openid/jwks'),
+            ('_auto_provisioning_enabled', u'true'),
+            ('properties_mapping',
              u'{"fullname": "Existing User", "email": "i@existed.com"}'),
         ]
         for x, y in plugin_props:

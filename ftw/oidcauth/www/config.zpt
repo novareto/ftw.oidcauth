@@ -76,10 +76,10 @@ Error: <b tal:content="options/error_message">
           <div class="form-help"></div>
           </td>
           <td>
-            <input type="checkbox" name="enable-auto-provisioning" checked="on"
-                   tal:condition="context/enable_auto_provisioning"/>
-            <input type="checkbox" name="enable-auto-provisioning"
-                   tal:condition="not: context/enable_auto_provisioning"/>
+            <input type="checkbox" name="auto-provisioning-enabled" checked="on"
+                   tal:condition="context/auto_provisioning_enabled"/>
+            <input type="checkbox" name="auto-provisioning-enabled"
+                   tal:condition="not: context/auto_provisioning_enabled"/>
           </td>
         </tr>
         <tr valign="top">

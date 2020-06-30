@@ -18,8 +18,8 @@ from zope.interface import implements
 import json
 import logging
 
-
 logger = logging.getLogger('ftw.oidcauth')
+
 
 manage_addOIDCPlugin = PageTemplateFile(
     "www/addPlugin",
@@ -71,26 +71,26 @@ class OIDCPlugin(BasePlugin):
 
     def __init__(self, id, title=None):
         self._setId(id)
-        self.title = title
-        self._roles = ()
 
-        self._client_id = None
-        self._client_secret = None
-        self._scope = u'openid email profile'
-        self._sign_algorithm = u'RS256'
-        self._username_attribute = u'sub'
-        self._authentication_endpoint = None
-        self._token_endpoint = None
-        self._user_endpoint = None
-        self._jwks_endpoint = None
-        self._enable_auto_provisioning = True
-        self._properties_mapping = json.dumps({
+        self.title = title
+        # TODO: implement roles
+        self.roles = ()
+        self.client_id = None
+        self.client_secret = None
+        self.scope = u'openid email profile'
+        self.sign_algorithm = u'RS256'
+        self.username_attribute = u'sub'
+        self.authentication_endpoint = None
+        self.token_endpoint = None
+        self.user_endpoint = None
+        self.jwks_endpoint = None
+        self._auto_provisioning_enabled = True
+        self.properties_mapping = json.dumps({
             "userid": "sub",
             "fullname": "name",
             "email": "email"
             })
-
-        self._logins = OITreeSet()
+        self.logins = OITreeSet()
 
     security.declarePrivate('challenge')
 
@@ -98,24 +98,24 @@ class OIDCPlugin(BasePlugin):
     def challenge(self, request, response, **kw):
         request.response.setCookie('oidc_next', request['PATH_INFO'])
         uri = '{}?response_type=code&scope={}&client_id={}&redirect_uri={}'.format(
-            self._authentication_endpoint,
-            self._scope,
-            self._client_id,
+            self.authentication_endpoint,
+            self.scope,
+            self.client_id,
             get_oidc_request_uri(do_url_quote=True))
         response.redirect(uri, lock=True, status=302)
         return True
 
     def addUser(self, userid):
-        if userid in self._logins:
+        if userid in self.logins:
             return
 
-        self._logins.insert(userid)
+        self.logins.insert(userid)
 
     def removeUser(self, userid):
-        if userid not in self._logins:
+        if userid not in self.logins:
             return
 
-        self._logins.remove(userid)
+        self.logins.remove(userid)
 
     def listUserInfo(self):
         """ -> ( {}, ...{} )
@@ -125,7 +125,7 @@ class OIDCPlugin(BasePlugin):
           - 'user_id'
           - 'login_name'
         """
-        return [{'user_id': x, 'login_name': x} for x in self._logins]
+        return [{'user_id': x, 'login_name': x} for x in self.logins]
 
     security.declareProtected(ManageUsers, 'manage_addUser')
 
@@ -182,13 +182,13 @@ class OIDCPlugin(BasePlugin):
 
         if not key:
             # Return all users
-            for login in self._logins:
+            for login in self.logins:
                 user_infos.append({
                     "id": login,
                     "login": login,
                     "pluginid": pluginid,
                     })
-        elif key in self._logins:
+        elif key in self.logins:
             # User does exists
             user_infos.append({
                 "id": key,
@@ -207,8 +207,8 @@ class OIDCPlugin(BasePlugin):
     # IRolesPlugin
     def getRolesForPrincipal(self, principal, request=None):
         # Return a list of roles for the given principal (a user or group).
-        if principal.getId() in self._logins:
-            return self._roles
+        if principal.getId() in self.logins:
+            return self.roles
 
         return ()
 
@@ -220,15 +220,15 @@ class OIDCPlugin(BasePlugin):
         """
         response = REQUEST.response
 
-        self._client_id = REQUEST.form.get('client-id')
-        self._client_secret = REQUEST.form.get('client-secret')
-        self._scope = REQUEST.form.get('scope')
-        self._sign_algorithm = REQUEST.form.get('sign-algorithm')
-        self._authentication_endpoint = REQUEST.form.get('authentication-endpoint')
-        self._token_endpoint = REQUEST.form.get('token-endpoint')
-        self._user_endpoint = REQUEST.form.get('user-endpoint')
-        self._jwks_endpoint = REQUEST.form.get('jwks-endpoint')
-        self._enable_auto_provisioning = REQUEST.form.get('enable-auto-provisioning')
+        self.client_id = REQUEST.form.get('client-id')
+        self.client_secret = REQUEST.form.get('client-secret')
+        self.scope = REQUEST.form.get('scope')
+        self.sign_algorithm = REQUEST.form.get('sign-algorithm')
+        self.authentication_endpoint = REQUEST.form.get('authentication-endpoint')
+        self.token_endpoint = REQUEST.form.get('token-endpoint')
+        self.user_endpoint = REQUEST.form.get('user-endpoint')
+        self.jwks_endpoint = REQUEST.form.get('jwks-endpoint')
+        self._auto_provisioning_enabled = REQUEST.form.get('auto-provisioning-enabled')
 
         # only update props if json is valid
         props = REQUEST.form.get('properties-mapping')
@@ -237,50 +237,14 @@ class OIDCPlugin(BasePlugin):
             response.redirect('%s/manage_config?manage_tabs_message=%s' % (
                 self.absolute_url(), 'Please make sure the json is valid!'))
             return
-        self._properties_mapping = props_data
+        self.properties_mapping = props_data
 
         response.redirect('%s/manage_config?manage_tabs_message=%s' %
                           (self.absolute_url(), 'Configuration+updated.'))
 
-    def client_id(self):
+    def auto_provisioning_enabled(self):
         """Accessor for config form"""
-        return self._client_id
-
-    def client_secret(self):
-        """Accessor for config form"""
-        return self._client_secret
-
-    def scope(self):
-        """Accessor for config form"""
-        return self._scope
-
-    def sign_algorithm(self):
-        """Accessor for config form"""
-        return self._sign_algorithm
-
-    def authentication_endpoint(self):
-        """Accessor for config form"""
-        return self._authentication_endpoint
-
-    def token_endpoint(self):
-        """Accessor for config form"""
-        return self._token_endpoint
-
-    def user_endpoint(self):
-        """Accessor for config form"""
-        return self._user_endpoint
-
-    def jwks_endpoint(self):
-        """Accessor for config form"""
-        return self._jwks_endpoint
-
-    def enable_auto_provisioning(self):
-        """Accessor for config form"""
-        return True if self._enable_auto_provisioning else False
-
-    def properties_mapping(self):
-        """Accessor for config form"""
-        return self._properties_mapping
+        return True if self._auto_provisioning_enabled else False
 
     @staticmethod
     def get_valid_json(props):
