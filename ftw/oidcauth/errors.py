@@ -36,7 +36,7 @@ class OIDCUserAutoProvisionError(OIDCBaseError):
     """Error if auto provision is disabled and non existing user tries to log
     in with the OIDC PAS plugin.
     """
-    message = 'Auto provision disabled'
+    message = 'Unknown user'
 
 
 class OIDCPluginNotFoundError(OIDCBaseError):
