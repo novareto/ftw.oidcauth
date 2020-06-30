@@ -34,7 +34,8 @@ class OIDCClientAuthentication(object):
         self.oidc_plugin = self.get_oidc_plugin()
 
     def authorize(self):
-        props = self.map_properties()
+        user_info = self.authorize_user()
+        props = self.map_properties(user_info)
         oidc_user_handler = OIDCUserHandler(self.request, props)
         oidc_user_handler.login_user()
         if oidc_user_handler.is_user_logged_in:
@@ -43,8 +44,7 @@ class OIDCClientAuthentication(object):
     def get_redirect(self):
         return self.request.cookies.get('oidc_next')
 
-    def map_properties(self):
-        user_info = self.authorize_user()
+    def map_properties(self, user_info):
         props_mapping = self.oidc_plugin.properties_mapping
         props = {key: user_info.get(value)
                  for (key, value) in props_mapping.items()}
@@ -259,7 +259,7 @@ class OIDCUserHandler(object):
         plugins = portal.acl_users.plugins
         authenticators = plugins.listPlugins(IChallengePlugin)
         oidc_plugin = None
-        for id_, authenticator in authenticators:
+        for _id, authenticator in authenticators:
             if authenticator.meta_type == "ftw.oidcauth plugin":
                 oidc_plugin = authenticator
 
