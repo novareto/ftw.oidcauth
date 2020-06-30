@@ -10,7 +10,7 @@ from ftw.oidcauth.errors import OIDCTokenError
 from ftw.oidcauth.errors import OIDCUserAutoProvisionError
 from ftw.oidcauth.errors import OIDCUserIDPropertyError
 from ftw.oidcauth.errors import OIDCUserInfoError
-from ftw.oidcauth.helper import get_oidc_request_uri
+from ftw.oidcauth.helper import get_oidc_request_url
 from jwt.exceptions import InvalidTokenError
 from plone import api
 from zope import event
@@ -88,7 +88,7 @@ class OIDCClientAuthentication(object):
         data = {
             'grant_type': 'authorization_code',
             'code': self.code,
-            'redirect_uri': get_oidc_request_uri(),
+            'redirect_uri': get_oidc_request_url(),
         }
 
         response = requests.post(

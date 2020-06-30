@@ -13,7 +13,7 @@ from Products.PluggableAuthService.interfaces.plugins import (
 from Products.PluggableAuthService.interfaces.plugins import IChallengePlugin
 from Products.PluggableAuthService.permissions import ManageUsers
 from Products.PluggableAuthService.utils import csrf_only
-from ftw.oidcauth.helper import get_oidc_request_uri
+from ftw.oidcauth.helper import get_oidc_request_url
 from zope.interface import implements
 import json
 import logging
@@ -101,7 +101,7 @@ class OIDCPlugin(BasePlugin):
             self.authentication_endpoint,
             self.scope,
             self.client_id,
-            get_oidc_request_uri(do_url_quote=True))
+            get_oidc_request_url(quote_=True))
         response.redirect(uri, lock=True, status=302)
         return True
 

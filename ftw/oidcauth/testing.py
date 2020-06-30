@@ -13,15 +13,10 @@ class FtwOIDCauthLayer(PloneSandboxLayer):
 
     def setUpZope(self, app, configurationContext):
         # Load ZCML
-        import plone.restapi
-        xmlconfig.file('configure.zcml',
-                       plone.restapi,
-                       context=configurationContext)
         import ftw.oidcauth
         xmlconfig.file('configure.zcml',
                        ftw.oidcauth,
                        context=configurationContext)
-        z2.installProduct(app, 'plone.restapi')
         z2.installProduct(app, 'ftw.oidcauth')
 
     def setUpPloneSite(self, portal):
@@ -51,7 +46,6 @@ class FtwOIDCauthLayer(PloneSandboxLayer):
             'IChallengePlugin',
         ])
         self['plugin'] = plugin
-        applyProfile(portal, 'plone.restapi:default')
 
 
 FTW_OIDCAUTH_FIXTURE = FtwOIDCauthLayer()
