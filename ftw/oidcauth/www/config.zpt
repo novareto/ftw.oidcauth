@@ -89,6 +89,13 @@ Error: <b tal:content="options/error_message">
           <td><textarea name="properties-mapping" rows="4" cols="60"
                         tal:content="context/properties_mapping"></textarea></td>
         </tr>
+        <tr valign="top">
+          <td><div class="form-label">Roles</div>
+          <div class="form-help"></div>
+          </td>
+          <td><input type="text" name="roles" size="60"
+                     tal:attributes="value context/roles"/></td>
+        </tr>
         <tr>
           <td colspan="2">
             <div class="form-element">

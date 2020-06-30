@@ -74,8 +74,7 @@ class OIDCPlugin(BasePlugin):
         self._setId(id)
 
         self.title = title
-        # TODO: implement roles
-        self.roles = ()
+        self._roles = ()
         self.client_id = None
         self.client_secret = None
         self.scope = u'openid email profile'
@@ -209,7 +208,7 @@ class OIDCPlugin(BasePlugin):
     def getRolesForPrincipal(self, principal, request=None):
         # Return a list of roles for the given principal (a user or group).
         if principal.getId() in self.logins:
-            return self.roles
+            return self._roles
 
         return ()
 
@@ -231,6 +230,9 @@ class OIDCPlugin(BasePlugin):
         self.jwks_endpoint = REQUEST.form.get('jwks-endpoint')
         self._auto_provisioning_enabled = REQUEST.form.get('auto-provisioning-enabled')
 
+        roles = REQUEST.form.get('roles')
+        self._roles = tuple([role.strip() for role in roles.split(',')])
+
         # only update props if json is valid
         props = REQUEST.form.get('properties-mapping')
         props_data = self.get_valid_json(props)
@@ -244,8 +246,10 @@ class OIDCPlugin(BasePlugin):
                           (self.absolute_url(), 'Configuration+updated.'))
 
     def auto_provisioning_enabled(self):
-        """Accessor for config form"""
         return True if self._auto_provisioning_enabled else False
+
+    def roles(self):
+        return ','.join(self._roles)
 
     @staticmethod
     def get_valid_json(props):
