@@ -15,6 +15,7 @@ from Products.PluggableAuthService.permissions import ManageUsers
 from Products.PluggableAuthService.utils import csrf_only
 from ftw.oidcauth.helper import get_oidc_request_url
 from zope.interface import implements
+import ast
 import json
 import logging
 
@@ -249,7 +250,7 @@ class OIDCPlugin(BasePlugin):
     @staticmethod
     def get_valid_json(props):
         try:
-            data = json.loads(props)
+            data = ast.literal_eval(props)
         except ValueError as e:
             return False
         return data
