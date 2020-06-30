@@ -3,6 +3,8 @@ from Products.PlonePAS.events import UserInitialLoginInEvent
 from Products.PlonePAS.events import UserLoggedInEvent
 from Products.PluggableAuthService.interfaces.plugins import IChallengePlugin
 from base64 import b64encode
+from ftw.oidcauth.errors import OIDCAlgorithmError
+from ftw.oidcauth.errors import OIDCBaseError
 from ftw.oidcauth.errors import OIDCJwkEndpointError
 from ftw.oidcauth.errors import OIDCPluginNotFoundError
 from ftw.oidcauth.errors import OIDCSubMismatchError
@@ -11,6 +13,7 @@ from ftw.oidcauth.errors import OIDCUserAutoProvisionError
 from ftw.oidcauth.errors import OIDCUserIDPropertyError
 from ftw.oidcauth.errors import OIDCUserInfoError
 from ftw.oidcauth.helper import get_oidc_request_url
+from jwt.exceptions import DecodeError
 from jwt.exceptions import InvalidTokenError
 from plone import api
 from zope import event
@@ -103,17 +106,34 @@ class OIDCClientAuthentication(object):
         else:
             return response.json()
 
-    def obtain_validated_token(self, token_data):
-        """Obtain validated jwk.
-        """
+    def get_algorithm_and_extract_id_token(self, plugin, token_data):
+        try:
+            id_token = token_data['id_token']
+            alg = jwt.get_unverified_header(id_token)['alg']
+        except (DecodeError, KeyError):
+            raise OIDCAlgorithmError
+        if not alg:
+            raise OIDCAlgorithmError
+        if plugin.sign_algorithm != alg or alg not in ['HS256', 'RS256']:
+            raise OIDCAlgorithmError
+        return alg, id_token
+
+    def decode_HS256(self, plugin, id_token):
+        try:
+            return jwt.decode(
+                id_token, plugin.client_secret, algorithms=['HS256'],
+                audience=self.oidc_plugin.client_id)
+        except InvalidTokenError:
+            logger.warning('An error occurred trying to decode %s', id_token)
+            raise OIDCTokenError
+
+    def decode_RS256(self, plugin, id_token):
         response = requests.get(self.oidc_plugin.jwks_endpoint)
         if response.status_code != 200:
             logger.info('An error occurred obtaining jwks')
             raise OIDCJwkEndpointError
         jwks = response.json().get('keys')
-        id_token = token_data['id_token']
         public_key = self.extract_token_key(jwks, id_token)
-
         try:
             return jwt.decode(
                 id_token, key=public_key, algorithms=['RS256'],
@@ -121,6 +141,18 @@ class OIDCClientAuthentication(object):
         except InvalidTokenError:
             logger.warning('An error occurred trying to decode %s', id_token)
             raise OIDCTokenError
+
+    def obtain_validated_token(self, token_data):
+        """Obtain validated jwk.
+        """
+        plugin = self.get_oidc_plugin()
+        alg, id_token = self.get_algorithm_and_extract_id_token(
+            plugin, token_data)
+
+        if alg == 'HS256':
+            return self.decode_HS256(plugin, id_token)
+        else:
+            return self.decode_RS256(plugin, id_token)
 
     def get_user_info(self, access_token):
         bearerstr = 'Bearer {}'.format(access_token)

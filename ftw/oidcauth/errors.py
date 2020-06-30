@@ -48,3 +48,9 @@ class OIDCUserIDPropertyError(OIDCBaseError):
     """Error raised if the userid property was not mapped in the plugins
     settings or the mapped property is not provided in the user information.
     """
+
+
+class OIDCAlgorithmError(OIDCBaseError):
+    """If the unverified header is not accessible to get the required algorithm
+    this error will be raised.
+    """
