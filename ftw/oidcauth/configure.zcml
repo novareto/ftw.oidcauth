@@ -8,7 +8,4 @@
 
   <include package=".browser"/>
 
-  <adapter factory=".storage.AuthNRequestStorage"
-           for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"/>
-
 </configure>
