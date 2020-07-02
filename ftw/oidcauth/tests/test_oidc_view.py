@@ -1,5 +1,6 @@
 from ftw.oidcauth.errors import OIDCBaseError
 from ftw.oidcauth.tests import IntegrationTestCase
+from mock import Mock
 from mock import patch
 from zope.publisher.interfaces import NotFound
 
@@ -17,7 +18,10 @@ class TestOIDCView(IntegrationTestCase):
         oidc_view.publishTraverse(self.request, 'callback')
         oidc_view()
 
-        self.assertEqual(self.request.response.status, 200)
+        self.assertEqual(self.request.response.status, 302)
+        self.assertIn(
+            'OIDCClientAuthentication().get_redirect()',
+            self.request.response.headers['location'])
 
     @patch('ftw.oidcauth.browser.oidc.OIDCClientAuthentication')
     def test_oidc_view_if_authentication_is_not_successful(self, client_auth_mock):

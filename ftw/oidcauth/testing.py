@@ -13,15 +13,10 @@ class FtwOIDCauthLayer(PloneSandboxLayer):
 
     def setUpZope(self, app, configurationContext):
         # Load ZCML
-        import plone.restapi
-        xmlconfig.file('configure.zcml',
-                       plone.restapi,
-                       context=configurationContext)
         import ftw.oidcauth
         xmlconfig.file('configure.zcml',
                        ftw.oidcauth,
                        context=configurationContext)
-        z2.installProduct(app, 'plone.restapi')
         z2.installProduct(app, 'ftw.oidcauth')
 
     def setUpPloneSite(self, portal):
@@ -29,16 +24,16 @@ class FtwOIDCauthLayer(PloneSandboxLayer):
         uf = portal.acl_users
         plugin = OIDCPlugin('oidc')
         plugin_props = [
-            ('_client_id', u'42'),
-            ('_client_secret', u'42'),
-            ('_scope', u'openid email profile'),
-            ('_sign_algorithm', u'RS256'),
-            ('_authentication_endpoint', u'https://auth.ch/openid/authorize'),
-            ('_token_endpoint', u'https://auth.ch/openid/token'),
-            ('_user_endpoint', u'https://auth.ch/openid/userinfo'),
-            ('_jwks_endpoint', u'https://auth.ch/openid/jwks'),
-            ('_enable_auto_provisioning', u'true'),
-            ('_properties_mapping',
+            ('client_id', u'42'),
+            ('client_secret', u'42'),
+            ('scope', u'openid email profile'),
+            ('sign_algorithm', u'RS256'),
+            ('authentication_endpoint', u'https://auth.ch/openid/authorize'),
+            ('token_endpoint', u'https://auth.ch/openid/token'),
+            ('user_endpoint', u'https://auth.ch/openid/userinfo'),
+            ('jwks_endpoint', u'https://auth.ch/openid/jwks'),
+            ('_auto_provisioning_enabled', u'true'),
+            ('properties_mapping',
              u'{"fullname": "Existing User", "email": "i@existed.com"}'),
         ]
         for x, y in plugin_props:
@@ -51,7 +46,6 @@ class FtwOIDCauthLayer(PloneSandboxLayer):
             'IChallengePlugin',
         ])
         self['plugin'] = plugin
-        applyProfile(portal, 'plone.restapi:default')
 
 
 FTW_OIDCAUTH_FIXTURE = FtwOIDCauthLayer()
