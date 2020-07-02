@@ -36,12 +36,22 @@ Error: <b tal:content="options/error_message">
           <td><input type="text" name="scope" size="60"
                      tal:attributes="value context/scope"/></td>
         </tr>
-        <tr valign="top">
+        <tr valign="top"
+            tal:define="ttt python: True; fff python: False">
           <td><div class="form-label">Sign Algorithm</div>
-          <div class="form-help"></div>
+          <div class="form"></div></td>
+          <td>
+            <select name="sign-algorithm">
+              <option value="RS256"
+                      tal:attributes="selected python:'selected' if context.sign_algorithm == 'RS256' else False">
+                RS256
+              </option>
+              <option value="HS256"
+                      tal:attributes="selected python:'selected' if context.sign_algorithm == 'HS256' else False">
+                HS256
+              </option>
+            </select>
           </td>
-          <td><input type="text" name="sign-algorithm" size="60"
-                     tal:attributes="value context/sign_algorithm"/></td>
         </tr>
         <tr valign="top">
           <td><div class="form-label">Authorization Endpoint</div>
