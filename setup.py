@@ -10,7 +10,7 @@ tests_require = [
 
 setup(name='ftw.oidcauth',
       version=version,
-      description="A PAS plugin for authentication of users in Plone using OICD.",
+      description="A PAS plugin for authentication of users in Plone using OIDC.",
       long_description=open("README.rst").read() + "\n" +
                        open(os.path.join("docs", "HISTORY.txt")).read(),
       # Get more strings from
