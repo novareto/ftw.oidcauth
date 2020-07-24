@@ -1,5 +1,5 @@
 from ftw.oidcauth.browser.oidc_tools import OIDCClientAuthentication
-from ftw.oidcauth.errors import OIDCJwkEndpointError
+from ftw.oidcauth.errors import OIDCAlgorithmError
 from ftw.oidcauth.errors import OIDCSubMismatchError
 from ftw.oidcauth.errors import OIDCTokenError
 from ftw.oidcauth.errors import OIDCUserInfoError
@@ -44,7 +44,7 @@ class TestOIDCClientAuthentication(unittest.TestCase):
             oidc_auth.authorize_client()
 
     @patch('ftw.oidcauth.browser.oidc_tools.requests.get')
-    def test_obtain_validated_token_raises_if_bad_response_from_jwks(self, get_mock):
+    def test_obtain_validated_token_raises_if_bad_response(self, get_mock):
         get_mock.return_value = self.mock_response(400)
         code = '9999'
         state = ''
@@ -57,7 +57,7 @@ class TestOIDCClientAuthentication(unittest.TestCase):
             u'refresh_token': u'30894d955fa7434bb848f12a55dcf8de',
             u'id_token': u'MdrZBzXHCBwvaDDL4sYaBzhjhnhE9Y2'}
 
-        with self.assertRaises(OIDCJwkEndpointError):
+        with self.assertRaises(OIDCAlgorithmError):
             oidc_auth.obtain_validated_token(token_data)
 
     @patch('ftw.oidcauth.browser.oidc_tools.requests.get')
