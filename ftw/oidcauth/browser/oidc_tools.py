@@ -118,7 +118,7 @@ class OIDCClientAuthentication(object):
             raise OIDCAlgorithmError
         return alg, id_token
 
-    def decode_HS256(self, plugin, id_token):
+    def decode_hs256(self, plugin, id_token):
         try:
             return jwt.decode(
                 id_token, plugin.client_secret, algorithms=['HS256'],
@@ -127,7 +127,7 @@ class OIDCClientAuthentication(object):
             logger.warning('An error occurred trying to decode %s', id_token)
             raise OIDCTokenError
 
-    def decode_RS256(self, plugin, id_token):
+    def decode_rs256(self, plugin, id_token):
         response = requests.get(self.oidc_plugin.jwks_endpoint)
         if response.status_code != 200:
             logger.info('An error occurred obtaining jwks')
@@ -150,9 +150,9 @@ class OIDCClientAuthentication(object):
             plugin, token_data)
 
         if alg == 'HS256':
-            return self.decode_HS256(plugin, id_token)
+            return self.decode_hs256(plugin, id_token)
         else:
-            return self.decode_RS256(plugin, id_token)
+            return self.decode_rs256(plugin, id_token)
 
     def get_user_info(self, access_token):
         bearerstr = 'Bearer {}'.format(access_token)
