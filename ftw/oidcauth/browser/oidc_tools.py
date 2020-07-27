@@ -4,7 +4,6 @@ from Products.PlonePAS.events import UserLoggedInEvent
 from Products.PluggableAuthService.interfaces.plugins import IChallengePlugin
 from base64 import b64encode
 from ftw.oidcauth.errors import OIDCAlgorithmError
-from ftw.oidcauth.errors import OIDCBaseError
 from ftw.oidcauth.errors import OIDCJwkEndpointError
 from ftw.oidcauth.errors import OIDCPluginNotFoundError
 from ftw.oidcauth.errors import OIDCSubMismatchError
@@ -16,6 +15,7 @@ from ftw.oidcauth.helper import get_oidc_request_url
 from jwt.exceptions import DecodeError
 from jwt.exceptions import InvalidTokenError
 from plone import api
+from plone.dexterity.utils import safe_unicode
 from zope import event
 import json
 import jwt
@@ -218,7 +218,7 @@ class OIDCUserHandler(object):
     def __init__(self, request, props):
         self.is_user_logged_in = False
         self.properties = props
-        self.userid = self.properties.get('userid')
+        self.userid = safe_unicode(self.properties.get('userid'))
         self.request = request
         self.first_login = False
         self.mtool = api.portal.get_tool('portal_membership')
