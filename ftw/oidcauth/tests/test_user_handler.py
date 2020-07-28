@@ -18,7 +18,7 @@ class TestOIDCUserHandler(unittest.TestCase):
     def test_user_handler_api_creating_a_new_user(self):
         props = {'fullname': 'James Bond',
                  'email': 'james@007.com',
-                 'userid': 'james007'}
+                 'userid': u'j\xe4ims007'}
         user_handler = OIDCUserHandler(self.request, props)
         self.assertFalse(user_handler.is_user_logged_in)
         user_handler.login_user()
@@ -26,7 +26,7 @@ class TestOIDCUserHandler(unittest.TestCase):
 
         # check if user has been created
         acl_users = getToolByName(self.portal, 'acl_users')
-        user = acl_users.getUserById('james007')
+        user = acl_users.getUserById(u'j\xe4ims007')
         self.assertIsInstance(user, PloneUser)
 
         # check if property was applied
