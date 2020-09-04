@@ -96,7 +96,7 @@ class OIDCPlugin(BasePlugin):
 
     # Initiate a challenge to the user to provide credentials.
     def challenge(self, request, response, **kw):
-        request.response.setCookie('oidc_next', request['PATH_INFO'])
+        request.response.setCookie('oidc_next', request['ACTUAL_URL'])
         uri = '{}?response_type=code&scope={}&client_id={}&redirect_uri={}'.format(
             self.authentication_endpoint,
             self.scope,
