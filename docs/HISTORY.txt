@@ -5,6 +5,7 @@ Changelog
 ------------------
 
 - Fix next URL. [buchi]
+- Fix encoding of userid and user properties. [buchi]
 
 
 1.0.1 (2020-07-28)

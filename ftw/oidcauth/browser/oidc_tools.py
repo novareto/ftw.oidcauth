@@ -15,7 +15,7 @@ from ftw.oidcauth.helper import get_oidc_request_url
 from jwt.exceptions import DecodeError
 from jwt.exceptions import InvalidTokenError
 from plone import api
-from plone.dexterity.utils import safe_unicode
+from plone.dexterity.utils import safe_utf8
 from zope import event
 import json
 import jwt
@@ -49,7 +49,7 @@ class OIDCClientAuthentication(object):
 
     def map_properties(self, user_info):
         props_mapping = self.oidc_plugin.properties_mapping
-        props = {key: user_info.get(value)
+        props = {key: safe_utf8(user_info.get(value))
                  for (key, value) in props_mapping.items()}
         if not props.get('userid') or not user_info.get(props_mapping.get('userid')):
             logger.info('The userid property is not set correctly.')
@@ -218,7 +218,7 @@ class OIDCUserHandler(object):
     def __init__(self, request, props):
         self.is_user_logged_in = False
         self.properties = props
-        self.userid = safe_unicode(self.properties.get('userid'))
+        self.userid = safe_utf8(self.properties.get('userid'))
         self.request = request
         self.first_login = False
         self.mtool = api.portal.get_tool('portal_membership')
