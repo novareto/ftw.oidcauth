@@ -231,7 +231,7 @@ class OIDCPlugin(BasePlugin):
         self._auto_provisioning_enabled = REQUEST.form.get('auto-provisioning-enabled')
 
         roles = REQUEST.form.get('roles')
-        self._roles = tuple([role.strip() for role in roles.split(',')])
+        self._roles = tuple([role.strip() for role in roles.split(',') if role])
 
         # only update props if json is valid
         props = REQUEST.form.get('properties-mapping')
