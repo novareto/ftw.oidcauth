@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0.2 (unreleased)
+1.0.2 (2020-09-07)
 ------------------
 
 - Fix next URL. [buchi]
