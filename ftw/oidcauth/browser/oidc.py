@@ -2,7 +2,7 @@ from Products.Five import BrowserView
 from ftw.oidcauth.browser.oidc_tools import OIDCClientAuthentication
 from ftw.oidcauth.errors import OIDCBaseError
 from zExceptions import NotFound as zNotFound
-from zope.interface import implements
+from zope.interface import implementer
 from zope.publisher.interfaces import IPublishTraverse
 from zope.publisher.interfaces import NotFound
 import logging
@@ -10,10 +10,10 @@ import logging
 logger = logging.getLogger('ftw.oidc')
 
 
+@implementer(IPublishTraverse)
 class OIDCView(BrowserView):
     """Endpoints for OIDC"""
 
-    implements(IPublishTraverse)
 
     def __init__(self, context, request):
         super(OIDCView, self).__init__(context, request)

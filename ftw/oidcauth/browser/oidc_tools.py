@@ -100,6 +100,7 @@ class OIDCClientAuthentication(object):
             headers=headers)
 
         if response.status_code != 200:
+            print(response.json())
             logger.warning(
                 'An error occurred trying to authorize %s', self.code)
             raise OIDCTokenError

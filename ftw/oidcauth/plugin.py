@@ -14,7 +14,7 @@ from Products.PluggableAuthService.interfaces.plugins import IChallengePlugin
 from Products.PluggableAuthService.permissions import ManageUsers
 from Products.PluggableAuthService.utils import csrf_only
 from ftw.oidcauth.helper import get_oidc_request_url
-from zope.interface import implements
+from zope.interface import implements, implementer
 import ast
 import json
 import logging
@@ -41,14 +41,14 @@ def addOIDCPlugin(self, id_, title='', REQUEST=None):
             "added." % self.absolute_url())
 
 
-class OIDCPlugin(BasePlugin):
-    """OIDC authentication plugin.
-    """
-    implements(
+@implementer(
         IRolesPlugin,
         IUserEnumerationPlugin,
         IChallengePlugin
     )
+class OIDCPlugin(BasePlugin):
+    """OIDC authentication plugin.
+    """
 
     meta_type = "ftw.oidcauth plugin"
     security = ClassSecurityInfo()
