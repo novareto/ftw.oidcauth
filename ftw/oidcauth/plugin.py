@@ -8,7 +8,9 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.interfaces.plugins import (
     IRolesPlugin,
-    IUserEnumerationPlugin
+    IUserEnumerationPlugin,
+    IExtractionPlugin,
+    IChallengeProtocolChooser
 )
 from Products.PluggableAuthService.interfaces.plugins import IChallengePlugin
 from Products.PluggableAuthService.permissions import ManageUsers
@@ -18,6 +20,7 @@ from zope.interface import implements, implementer
 import ast
 import json
 import logging
+import requests
 
 logger = logging.getLogger('ftw.oidcauth')
 
@@ -44,6 +47,8 @@ def addOIDCPlugin(self, id_, title='', REQUEST=None):
 @implementer(
         IRolesPlugin,
         IUserEnumerationPlugin,
+        IExtractionPlugin,
+        IChallengeProtocolChooser,
         IChallengePlugin
     )
 class OIDCPlugin(BasePlugin):
@@ -104,6 +109,31 @@ class OIDCPlugin(BasePlugin):
             get_oidc_request_url(quote_=True))
         response.redirect(uri, lock=True, status=302)
         return True
+
+    security.declarePrivate('extractCredentials')
+    def extractCredentials(self, request):
+        access_token = request.get('HTTP_ACCESS_TOKEN')
+        bearerstr = 'Bearer {}'.format(access_token)
+        headers = {'Authorization': bearerstr}
+        response = requests.get(
+            self.user_endpoint, headers=headers)
+        if response.status_code != 200:
+            logger.warning(
+                'An error occurred getting user info for %s.', access_token)
+            raise OIDCUserInfoError
+        user_info = response.json()
+        props_mapping = self.properties_mapping
+        props = {key: user_info.get(value) for (key, value) in props_mapping.items()}
+
+        from ftw.oidcauth.browser.oidc_tools import OIDCUserHandler
+        oidc_user_handler = OIDCUserHandler(request, props)
+        oidc_user_handler.login_user()
+        if oidc_user_handler.is_user_logged_in:
+            self.has_been_authorized = True
+
+    def chooseProtocols(self, request):
+        return
+
 
     def addUser(self, userid):
         if userid in self.logins:
