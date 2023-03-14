@@ -8,7 +8,7 @@
     for="plone.app.layout.navigation.interfaces.INavigationRoot"
     name="oidc"
     class=".oidc.OIDCView"
-    permission="zope.Public"
+    permission="zope2.View"
     />
 
 </configure>

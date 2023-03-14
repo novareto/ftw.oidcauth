@@ -1,0 +1,19 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    xmlns:zcml="http://namespaces.zope.org/zcml"
+    i18n_domain="plone.restapi"
+    >
+
+
+
+<plone:service
+  method="GET"
+  accept="application/json"
+  for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+  factory=".service.KeyCloakService"
+  permission="zope2.View"
+  name="users"
+  />
+</configure>
