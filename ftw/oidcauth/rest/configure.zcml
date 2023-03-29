@@ -6,14 +6,21 @@
     i18n_domain="plone.restapi"
     >
 
-
-
 <plone:service
   method="GET"
-  accept="application/json"
+  accept="*/*"
   for="Products.CMFPlone.interfaces.IPloneSiteRoot"
   factory=".service.KeyCloakService"
   permission="zope2.View"
   name="users"
+  />
+
+<plone:service
+  method="GET"
+  accept="*/*"
+  for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+  factory=".service.KeyCloakCredentials"
+  permission="zope2.View"
+  name="credentials"
   />
 </configure>
