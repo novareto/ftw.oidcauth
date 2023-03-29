@@ -16,11 +16,21 @@
   />
 
 <plone:service
-  method="GET"
+  method="POST"
   accept="*/*"
   for="Products.CMFPlone.interfaces.IPloneSiteRoot"
   factory=".service.KeyCloakCredentials"
   permission="zope2.View"
   name="credentials"
   />
+
+<plone:service
+  method="PUT"
+  accept="*/*"
+  for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+  factory=".service.KeyCloakUpdateCredentials"
+  permission="zope2.View"
+  name="credentials"
+  />
+
 </configure>

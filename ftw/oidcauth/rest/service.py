@@ -25,6 +25,8 @@ class KeyCloakService(Service):
         return self
 
     def render(self):
+        print('users')
+        import pdb;pdb.set_trace()
         print(self.params)
         AuthEncoding.pw_encrypt('danny')
         api.user.create(email="ck@nn.de", username="cklinger", password="passwort")
@@ -71,23 +73,63 @@ class KeyCloakCredentials(Service):
         return self
 
     def render(self):
-        print(self.params)
+        print('credentials')
+        if not self.params:
+            self.request.response.setStatus(400)
+            print('No userid in request')
+            return
+        uid = self.params[0]
+        if not api.user.get(uid):
+            print('Submitted credential could not have been verified with given userId.')
+            self.request.response.setStatus(400)
+            return
         uf = getToolByName(self, 'acl_users')
-        username = self.params[0]
-        user = api.user.get(username=username)
-        pw = uf.source_users._user_passwords.get(username, '')
-        pw_b64 = a2b_base64(pw[6:])
-        salt = pw_b64[20:]  #.decode('utf-8')
-        salt = base64.b64encode(salt).decode('utf-8')
-        value = pw_b64[:20]
-        value = base64.b64encode(value).decode('utf-8')
+        body = self.request.get('BODY')
+        decoded_body = body.decode('utf-8')
+        pw = json.loads(decoded_body).get('value')
+        if uf.authenticate(uid, pw, self.request):
+            self.request.response.setStatus(204)
+            response = self.request.response
+            response.setBody(uid)
+            return 
+        print('#/components/responses/UnauthorizedError')    
+        self.request.response.setStatus(401)
+        return
 
-        ret = PWResult(
-            value=value,
-            salt=salt,
-            iterations=0,
-            algorithm= "SSHA",
-            type= "password"
-        )
-        print(ret)
-        return json.dumps(ret)
+@implementer(IPublishTraverse)
+class KeyCloakUpdateCredentials(Service):
+
+    def __init__(self, context, request):
+        super(KeyCloakUpdateCredentials, self).__init__(context, request)
+        self.params = []
+
+    def publishTraverse(self, request, name):
+        self.params.append(name)
+        return self
+
+    def render(self):
+        print('update_credentials')
+        if not self.params:
+            self.request.response.setStatus(400)
+            print('No UserID in request')
+            return
+        uid = self.params[0]
+        if not api.user.get(uid):
+            print('Credential model update failed')
+            self.request.response.setStatus(400)
+            return
+        pm = getToolByName(self, 'portal_membership')
+        member = pm.getMemberById(uid)
+        body = self.request.get('BODY')
+        decoded_body = body.decode('utf-8')
+        pw = json.loads(decoded_body).get('value')
+        try:
+            member.setSecurityProfile(password=pw)
+            self.request.response.setStatus(204)
+            response = self.request.response
+            response.setBody(uid)
+            return
+        except:
+            print('Authentication information is missing or invalid')
+            self.request.response.setStatus(401)
+            return
