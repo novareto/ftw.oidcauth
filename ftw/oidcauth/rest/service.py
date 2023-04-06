@@ -91,7 +91,9 @@ class KeyCloakCreateUser(Service):
         uid = userdict.get('id')
         pw="e$7UwQ5xO*5p" #Initialpassword für neue Benutzer
         email = userdict.get('email')
-        fullname = f"{userdict.get('firstName')} {userdict.get('lastName')}"
+        fullname = ''
+        if userdict.get('firstName') and userdict.get('lastName'):
+            fullname = f"{userdict.get('firstName')} {userdict.get('lastName')}"
         if not api.user.get(uid):
             user = createUser(uid, pw, email, fullname)
             if user:
@@ -101,8 +103,40 @@ class KeyCloakCreateUser(Service):
                 print("Error while user creation")
                 self.request.response.setStatus(401)
             return
+        print('Error while user already exists')    
+        self.request.response.setStatus(401)
+        return
+
+@implementer(IPublishTraverse)
+class KeyCloakUpdateUser(Service):
+    """ endpoint: /users PUT Service """
+
+    def __init__(self, context, request):
+        super(KeyCloakUpdateUser, self).__init__(context, request)
+        self.params = []
+
+    def publishTraverse(self, request, name):
+        self.params.append(name)
+        return self
+
+    def render(self):
+        print('updateuser')
+        body = self.request.get('BODY')
+        decoded_body = body.decode('utf-8')
+        userdict = json.loads(decoded_body)
+        uid = userdict.get('id')
+        if self.params[0] != uid:
+            print("User-Ids in request and body are not the same")
+            self.request.response.setStatus(401)
+            return
+        email = userdict.get('email')
+        fullname = f"{userdict.get('firstName')} {userdict.get('lastName')}"
         pm = getToolByName(self, 'portal_membership')
         member = pm.getMemberById(uid)
+        if not member:
+            print("Member doesn't exist")
+            self.request.response.setStatus(401)
+            return
         mapping = {'email':email, 'fullname':fullname}
         try:
             member.setMemberProperties(mapping=mapping)
@@ -111,6 +145,42 @@ class KeyCloakCreateUser(Service):
             print("Error while user update")
             self.request.response.setStatus(401)
         return
+
+
+@implementer(IPublishTraverse)
+class KeyCloakDeleteUser(Service):
+    """ endpoint: /users DELETE Service """
+
+    def __init__(self, context, request):
+        super(KeyCloakDeleteUser, self).__init__(context, request)
+        self.params = []
+
+    def publishTraverse(self, request, name):
+        self.params.append(name)
+        return self
+
+    def render(self):
+        print('deleteuser')
+        if not self.params:
+            print('No param in request')
+            self.request.response.setStatus(401)
+            return
+        uid = self.params[0]
+        user = api.user.get(username = uid)
+        if not user:
+            print("User not found")
+            self.request.response.setStatus(404)
+            return
+        try:
+            api.user.delete(username = uid)
+            print("User successfully deleted")
+            self.request.response.setStatus(404)
+            return
+        except:
+            print("Error while delete user")
+            self.request.response.setStatus(401)
+            return
+        
 
 @implementer(IPublishTraverse)
 class KeyCloakCredentials(Service):

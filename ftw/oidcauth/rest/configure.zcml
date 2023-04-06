@@ -24,6 +24,24 @@
   name="users"
   />
 
+plone:service
+  method="PUT"
+  accept="*/*"
+  for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+  factory=".service.KeyCloakUpdateUser"
+  permission="zope2.View"
+  name="users"
+  />  
+
+plone:service
+  method="DELETE"
+  accept="*/*"
+  for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+  factory=".service.KeyCloakDeleteUser"
+  permission="zope2.View"
+  name="users"
+  />
+
 <plone:service
   method="POST"
   accept="*/*"
