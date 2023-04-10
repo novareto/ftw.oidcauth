@@ -8,7 +8,6 @@
 
 <plone:service
   method="GET"
-  accept="*/*"
   for="Products.CMFPlone.interfaces.IPloneSiteRoot"
   factory=".service.KeyCloakUsers"
   permission="zope2.View"
@@ -24,7 +23,7 @@
   name="users"
   />
 
-plone:service
+<plone:service
   method="PUT"
   accept="*/*"
   for="Products.CMFPlone.interfaces.IPloneSiteRoot"
@@ -33,7 +32,7 @@ plone:service
   name="users"
   />  
 
-plone:service
+<plone:service
   method="DELETE"
   accept="*/*"
   for="Products.CMFPlone.interfaces.IPloneSiteRoot"

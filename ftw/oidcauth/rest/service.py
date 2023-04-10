@@ -10,6 +10,8 @@ from Products.CMFCore.utils import getToolByName
 
 def createUser(uid, pw, email="john.doe@dummy.de", fullname="John Doe"):
     props = {'fullname':fullname}
+    print('----')
+    print(uid)
     user = api.user.create(email=email, username=uid, password=pw, properties=props)
     return user
 
@@ -43,10 +45,20 @@ class KeyCloakUsers(Service):
 
     def render(self):
         if not self.params:
+            print('ListUsers')
             retlist = []
             memberlist = api.user.get_users()
+            first = self.request.get('first')
+            if not first:
+                first = 0
+            maxuser = self.request.get('max')
+            if not maxuser:
+                maxuser = 0
             for i in memberlist:
                 retlist.append(createUserDict(i))
+            retlist = retlist[int(first):]
+            if int(maxuser) > 0:
+                retlist = retlist[:int(maxuser)]
             return json.dumps(retlist)
         elif 'count' in self.params:
             retobj = {'count':0}
@@ -90,10 +102,8 @@ class KeyCloakCreateUser(Service):
         userdict = json.loads(decoded_body)
         uid = userdict.get('id')
         pw="e$7UwQ5xO*5p" #Initialpassword für neue Benutzer
-        email = userdict.get('email')
-        fullname = ''
-        if userdict.get('firstName') and userdict.get('lastName'):
-            fullname = f"{userdict.get('firstName')} {userdict.get('lastName')}"
+        email="john.doe@dummy.de"
+        fullname="John Doe"
         if not api.user.get(uid):
             user = createUser(uid, pw, email, fullname)
             if user:
