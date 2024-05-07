@@ -8,6 +8,7 @@
 
 <plone:service
   method="GET"
+  accept="*/*"
   for="Products.CMFPlone.interfaces.IPloneSiteRoot"
   factory=".service.KeyCloakUsers"
   permission="zope2.View"

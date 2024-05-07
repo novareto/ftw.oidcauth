@@ -117,6 +117,8 @@ class OIDCPlugin(BasePlugin):
         headers = {'Authorization': bearerstr}
         response = requests.get(
             self.user_endpoint, headers=headers)
+        print(access_token)
+        print(response.status_code)
         if response.status_code != 200:
             logger.warning(
                 'An error occurred getting user info for %s.', access_token)
